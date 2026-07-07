@@ -55,6 +55,18 @@ export function SettingsPanel({ config, onChange, onExport, onImport, onReset }:
       </section>
 
       <section className="settings-section">
+        <h2>Voix</h2>
+        <label className="settings-checkbox">
+          <input
+            type="checkbox"
+            checked={config.speechEnabled}
+            onChange={(e) => onChange({ ...config, speechEnabled: e.target.checked })}
+          />
+          Lire le texte à voix haute lors de la sélection d'une case
+        </label>
+      </section>
+
+      <section className="settings-section">
         <h2>Défilement</h2>
         <label className="settings-row">
           Vitesse du défilement ({config.scan.speedMs} ms par case)

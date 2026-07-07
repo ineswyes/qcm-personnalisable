@@ -4,6 +4,7 @@ import { QuizGrid } from "./components/QuizGrid";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { useScanning } from "./hooks/useScanning";
+import { useSpeech } from "./hooks/useSpeech";
 import { defaultConfig } from "./types";
 import type { QuizConfig } from "./types";
 
@@ -18,6 +19,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const scanIndex = useScanning(config.options.length, config.scan.speedMs, isScanning);
+  const speak = useSpeech();
 
   const startScan = useCallback(() => {
     setSelectedId(null);
@@ -25,18 +27,22 @@ export default function App() {
   }, []);
 
   const stopScanAndSelect = useCallback(() => {
-    setIsScanning((wasScanning) => {
-      if (wasScanning && config.options[scanIndex]) {
-        setSelectedId(config.options[scanIndex].id);
-      }
-      return false;
-    });
-  }, [config.options, scanIndex]);
-
-  const selectDirectly = useCallback((id: string) => {
     setIsScanning(false);
-    setSelectedId(id);
-  }, []);
+    const option = config.options[scanIndex];
+    if (!option) return;
+    setSelectedId(option.id);
+    if (config.speechEnabled) speak(option.text);
+  }, [config.options, config.speechEnabled, scanIndex, speak]);
+
+  const selectDirectly = useCallback(
+    (id: string) => {
+      setIsScanning(false);
+      setSelectedId(id);
+      const option = config.options.find((opt) => opt.id === id);
+      if (option && config.speechEnabled) speak(option.text);
+    },
+    [config.options, config.speechEnabled, speak],
+  );
 
   useEffect(() => {
     if (mode !== "play" || !isScanning) return;

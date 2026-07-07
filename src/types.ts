@@ -32,6 +32,7 @@ export interface QuizConfig {
   question: string;
   options: OptionConfig[];
   scan: ScanSettings;
+  speechEnabled: boolean;
 }
 
 export const PALETTE = [
@@ -63,5 +64,6 @@ export function defaultConfig(): QuizConfig {
       speedMs: 1200,
       triggerMode: "spaceEnter",
     },
+    speechEnabled: true,
   };
 }
