@@ -189,7 +189,7 @@
 
 .option-editor {
   display: grid;
-  grid-template-columns: auto 1fr auto auto auto auto;
+  grid-template-columns: auto 1fr auto auto auto auto auto;
   align-items: center;
   gap: 12px;
   padding: 12px;
@@ -218,6 +218,16 @@
   align-items: center;
   font-size: 0.8rem;
   gap: 4px;
+}
+
+.option-editor select {
+  max-width: 140px;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #444);
+  background: transparent;
+  color: inherit;
+  font-size: 0.85rem;
 }
 
 .settings-hint {

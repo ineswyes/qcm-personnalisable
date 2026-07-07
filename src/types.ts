@@ -4,7 +4,22 @@ export interface OptionConfig {
   bgColor: string;
   textColor: string;
   fontSize: number;
+  fontFamily: string;
 }
+
+export const FONT_OPTIONS = [
+  { label: "Système (par défaut)", value: 'system-ui, "Segoe UI", Roboto, sans-serif' },
+  { label: "Arial", value: "Arial, sans-serif" },
+  { label: "Verdana", value: "Verdana, sans-serif" },
+  { label: "Tahoma", value: "Tahoma, sans-serif" },
+  { label: "Trebuchet MS", value: '"Trebuchet MS", sans-serif' },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: '"Times New Roman", Times, serif' },
+  { label: "Courier New", value: '"Courier New", Courier, monospace' },
+  { label: "Comic Sans MS", value: '"Comic Sans MS", "Comic Sans", cursive' },
+  { label: "Impact", value: "Impact, sans-serif" },
+  { label: "Brush Script", value: '"Brush Script MT", cursive' },
+];
 
 export type TriggerMode = "spaceEnter" | "anyKey";
 
@@ -36,6 +51,7 @@ export function makeOption(index: number, text?: string): OptionConfig {
     bgColor: color.bg,
     textColor: color.text,
     fontSize: 32,
+    fontFamily: FONT_OPTIONS[0].value,
   };
 }
 

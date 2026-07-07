@@ -20,6 +20,7 @@ export function OptionCard({ option, highlighted, selected, onClick }: OptionCar
         backgroundColor: option.bgColor,
         color: option.textColor,
         fontSize: `${option.fontSize}px`,
+        fontFamily: option.fontFamily,
       }}
       onClick={onClick}
     >

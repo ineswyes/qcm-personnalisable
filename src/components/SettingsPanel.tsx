@@ -1,7 +1,7 @@
 import type { ChangeEvent } from "react";
 import { useRef } from "react";
 import type { OptionConfig, QuizConfig, TriggerMode } from "../types";
-import { makeOption } from "../types";
+import { FONT_OPTIONS, makeOption } from "../types";
 
 interface SettingsPanelProps {
   config: QuizConfig;
@@ -120,6 +120,20 @@ export function SettingsPanel({ config, onChange, onExport, onImport, onReset }:
                   value={option.fontSize}
                   onChange={(e) => updateOption(option.id, { fontSize: Number(e.target.value) })}
                 />
+              </label>
+              <label>
+                Police
+                <select
+                  value={option.fontFamily}
+                  style={{ fontFamily: option.fontFamily }}
+                  onChange={(e) => updateOption(option.id, { fontFamily: e.target.value })}
+                >
+                  {FONT_OPTIONS.map((font) => (
+                    <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                      {font.label}
+                    </option>
+                  ))}
+                </select>
               </label>
               <button
                 type="button"
