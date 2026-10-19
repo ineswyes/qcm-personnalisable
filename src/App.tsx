@@ -92,7 +92,7 @@ export default function App() {
   const selectedOption = config.options.find((opt) => opt.id === selectedId) ?? null;
 
   return (
-    <div className="app">
+    <div className={mode === "play" ? "app app--play" : "app"}>
       <header className="app-header">
         <h1>QCM Personnalisable</h1>
         <nav className="mode-switch">
