@@ -5,6 +5,8 @@ export interface OptionConfig {
   textColor: string;
   fontSize: number;
   fontFamily: string;
+  /** Photo facultative (identifiant dans le stockage des photos du navigateur) */
+  imageId?: string;
 }
 
 export const FONT_OPTIONS = [
@@ -33,6 +35,22 @@ export interface QuizConfig {
   options: OptionConfig[];
   scan: ScanSettings;
   speechEnabled: boolean;
+}
+
+/** Un QCM enregistré dans la liste « Mes QCM » */
+export interface SavedQuiz {
+  id: string;
+  name: string;
+  config: QuizConfig;
+}
+
+export function newQuizId() {
+  return `qcm-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+/** Identifiants des photos utilisées par une configuration */
+export function imageIdsOf(config: QuizConfig): string[] {
+  return config.options.flatMap((opt) => (opt.imageId ? [opt.imageId] : []));
 }
 
 export const PALETTE = [

@@ -1,3 +1,4 @@
+import { useImageUrl } from "../hooks/useImageUrl";
 import type { OptionConfig } from "../types";
 
 interface OptionCardProps {
@@ -8,9 +9,12 @@ interface OptionCardProps {
 }
 
 export function OptionCard({ option, highlighted, selected, onClick }: OptionCardProps) {
+  const imageUrl = useImageUrl(option.imageId);
+
   const classes = ["option-card"];
   if (highlighted) classes.push("option-card--highlighted");
   if (selected) classes.push("option-card--selected");
+  if (option.imageId) classes.push("option-card--with-photo");
 
   return (
     <button
@@ -24,7 +28,16 @@ export function OptionCard({ option, highlighted, selected, onClick }: OptionCar
       }}
       onClick={onClick}
     >
-      {option.text}
+      {option.imageId ? (
+        <>
+          <span className="option-card__photo">
+            {imageUrl && <img src={imageUrl} alt="" draggable={false} />}
+          </span>
+          {option.text && <span className="option-card__text">{option.text}</span>}
+        </>
+      ) : (
+        option.text
+      )}
     </button>
   );
 }

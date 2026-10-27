@@ -1,24 +1,36 @@
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from "react";
 import { useRef } from "react";
 import type { OptionConfig, QuizConfig, TriggerMode } from "../types";
 import { FONT_OPTIONS, makeOption } from "../types";
+import { PhotoPicker } from "./PhotoPicker";
 
 interface SettingsPanelProps {
   config: QuizConfig;
-  onChange: (config: QuizConfig) => void;
+  onChange: Dispatch<SetStateAction<QuizConfig>>;
   onExport: () => void;
   onImport: (file: File) => void;
   onReset: () => void;
+  /** Section « Mes QCM », affichée en haut des réglages */
+  librarySection?: ReactNode;
 }
 
-export function SettingsPanel({ config, onChange, onExport, onImport, onReset }: SettingsPanelProps) {
+export function SettingsPanel({
+  config,
+  onChange,
+  onExport,
+  onImport,
+  onReset,
+  librarySection,
+}: SettingsPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function updateOption(id: string, patch: Partial<OptionConfig>) {
-    onChange({
-      ...config,
-      options: config.options.map((opt) => (opt.id === id ? { ...opt, ...patch } : opt)),
-    });
+    // Mise à jour à partir de la version la plus récente (une photo peut finir
+    // de se charger après d'autres modifications)
+    onChange((current) => ({
+      ...current,
+      options: current.options.map((opt) => (opt.id === id ? { ...opt, ...patch } : opt)),
+    }));
   }
 
   function addOption() {
@@ -44,6 +56,8 @@ export function SettingsPanel({ config, onChange, onExport, onImport, onReset }:
 
   return (
     <div className="settings-panel">
+      {librarySection}
+
       <section className="settings-section">
         <h2>Question</h2>
         <input
@@ -147,6 +161,10 @@ export function SettingsPanel({ config, onChange, onExport, onImport, onReset }:
                   ))}
                 </select>
               </label>
+              <PhotoPicker
+                imageId={option.imageId}
+                onChange={(imageId) => updateOption(option.id, { imageId })}
+              />
               <button
                 type="button"
                 className="button-danger"
@@ -166,12 +184,14 @@ export function SettingsPanel({ config, onChange, onExport, onImport, onReset }:
       <section className="settings-section">
         <h2>Sauvegarde</h2>
         <p className="settings-hint">
-          La configuration est enregistrée automatiquement dans ce navigateur. Vous pouvez aussi
-          exporter un fichier pour la réutiliser ailleurs, ou en importer une.
+          Le QCM affiché est enregistré automatiquement dans ce navigateur. Vous pouvez aussi
+          l'exporter seul dans un fichier (photos comprises) pour le réutiliser ailleurs, ou en
+          importer un. Pour transférer tous vos QCM d'un coup, utilisez « Exporter toute la liste »
+          dans Mes QCM.
         </p>
         <div className="settings-actions">
           <button type="button" className="button-secondary" onClick={onExport}>
-            Exporter (fichier .json)
+            Exporter ce QCM (fichier .json)
           </button>
           <button type="button" className="button-secondary" onClick={() => fileInputRef.current?.click()}>
             Importer un fichier
@@ -179,7 +199,7 @@ export function SettingsPanel({ config, onChange, onExport, onImport, onReset }:
           <input
             ref={fileInputRef}
             type="file"
-            accept="application/json"
+            accept="application/json,.json"
             style={{ display: "none" }}
             onChange={handleImportChange}
           />
