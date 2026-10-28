@@ -46,6 +46,8 @@ export default function App() {
   const [isScanning, setIsScanning] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [presenting, setPresenting] = useState(false);
+  // Demande de lancement automatique du défilement (traitée après l'affichage)
+  const [autoStartRequested, setAutoStartRequested] = useState(false);
   const [mouseActive, setMouseActive] = useState(false);
 
   // En mode Présentation il n'y a plus de bouton : le contacteur lance toujours le défilement
@@ -140,6 +142,7 @@ export default function App() {
     setSelectedId(null);
     setConfig(cloneConfig(quiz.config));
     setActiveQuizId(quiz.id);
+    if (appearance.autoStart && mode === "play") setAutoStartRequested(true);
   }
 
   function saveNewQuiz(name: string) {
@@ -174,6 +177,13 @@ export default function App() {
     [next[index], next[target]] = [next[target], next[index]];
     setQuizzes(next);
   }
+
+  // Lancement automatique : on repart de la première case du QCM affiché
+  useEffect(() => {
+    if (!autoStartRequested) return;
+    setAutoStartRequested(false);
+    if (mode === "play") startScan();
+  }, [autoStartRequested, mode, startScan]);
 
   // ----- Passage automatique au QCM suivant -----
 
@@ -214,6 +224,7 @@ export default function App() {
     setIsScanning(false);
     setSelectedId(null);
     setPresenting(true);
+    if (appearance.autoStart) setAutoStartRequested(true);
     document.documentElement.requestFullscreen?.().catch(() => {});
   }
 

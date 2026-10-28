@@ -13,6 +13,15 @@ export function FlowPanel({ appearance, onChange }: FlowPanelProps) {
       <label className="settings-checkbox">
         <input
           type="checkbox"
+          checked={appearance.autoStart}
+          onChange={(e) => onChange({ ...appearance, autoStart: e.target.checked })}
+        />
+        Lancer le défilement automatiquement (dès l'entrée en mode Présentation et à chaque
+        nouveau QCM)
+      </label>
+      <label className="settings-checkbox">
+        <input
+          type="checkbox"
           checked={appearance.autoNext}
           onChange={(e) => onChange({ ...appearance, autoNext: e.target.checked })}
         />

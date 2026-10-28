@@ -60,6 +60,8 @@ export interface Appearance {
   /** Passer tout seul au QCM suivant après une réponse */
   autoNext: boolean;
   autoNextDelayMs: number;
+  /** Lancer le défilement tout seul (entrée en Présentation, nouveau QCM) */
+  autoStart: boolean;
 }
 
 export function defaultAppearance(): Appearance {
@@ -69,6 +71,7 @@ export function defaultAppearance(): Appearance {
     ringWidth: 10,
     autoNext: false,
     autoNextDelayMs: 3000,
+    autoStart: false,
   };
 }
 
