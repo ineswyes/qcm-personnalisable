@@ -611,7 +611,54 @@ button:disabled {
   transition: opacity 0.3s ease;
 }
 
-.app--idle .presentation-exit {
+.presentation-arrow {
+  position: fixed;
+  top: 50%;
+  z-index: 10;
+  width: 64px;
+  height: 64px;
+  margin-top: -32px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.8);
+  color: #ffffff;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+}
+
+.presentation-arrow--prev {
+  left: 12px;
+}
+
+.presentation-arrow--next {
+  right: 12px;
+}
+
+.presentation-arrow:disabled {
+  opacity: 0.25;
+}
+
+.presentation-counter {
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.8);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  transition: opacity 0.3s ease;
+}
+
+.app--idle .presentation-exit,
+.app--idle .presentation-arrow,
+.app--idle .presentation-counter {
   opacity: 0;
   pointer-events: none;
 }

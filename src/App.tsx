@@ -291,6 +291,35 @@ export default function App() {
         <button type="button" className="presentation-exit" onClick={exitPresentation}>
           ✕ Quitter la présentation (Échap)
         </button>
+        {quizzes.length > 0 && (
+          <>
+            <button
+              type="button"
+              className="presentation-arrow presentation-arrow--prev"
+              onClick={(e) => goToQuiz(e, activeIndex - 1)}
+              disabled={activeIndex <= 0}
+              aria-label="QCM précédent"
+              title="QCM précédent (flèche ←)"
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              className="presentation-arrow presentation-arrow--next"
+              onClick={(e) => goToQuiz(e, activeIndex + 1)}
+              disabled={activeIndex >= quizzes.length - 1}
+              aria-label="QCM suivant"
+              title="QCM suivant (flèche →)"
+            >
+              ▶
+            </button>
+            {activeQuiz && (
+              <span className="presentation-counter">
+                {activeIndex + 1} / {quizzes.length}
+              </span>
+            )}
+          </>
+        )}
         <p className="visually-hidden" role="status">
           {selectedOption ? `Réponse sélectionnée : ${selectedOption.text}` : ""}
         </p>
