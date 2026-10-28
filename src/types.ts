@@ -57,10 +57,19 @@ export interface Appearance {
   scanColor: string;
   selectedColor: string;
   ringWidth: number;
+  /** Passer tout seul au QCM suivant après une réponse */
+  autoNext: boolean;
+  autoNextDelayMs: number;
 }
 
 export function defaultAppearance(): Appearance {
-  return { scanColor: "#facc15", selectedColor: "#22c55e", ringWidth: 10 };
+  return {
+    scanColor: "#facc15",
+    selectedColor: "#22c55e",
+    ringWidth: 10,
+    autoNext: false,
+    autoNextDelayMs: 3000,
+  };
 }
 
 /** Un QCM enregistré dans la liste « Mes QCM » */

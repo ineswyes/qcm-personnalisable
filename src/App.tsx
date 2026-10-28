@@ -2,6 +2,7 @@ import type { CSSProperties, MouseEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import { AppearancePanel } from "./components/AppearancePanel";
+import { FlowPanel } from "./components/FlowPanel";
 import { QuizGrid } from "./components/QuizGrid";
 import { QuizLibrary } from "./components/QuizLibrary";
 import { SettingsPanel } from "./components/SettingsPanel";
@@ -174,6 +175,31 @@ export default function App() {
     setQuizzes(next);
   }
 
+  // ----- Passage automatique au QCM suivant -----
+
+  const nextQuiz =
+    activeIndex >= 0 && activeIndex < quizzes.length - 1 ? quizzes[activeIndex + 1] : null;
+  const autoNextPending =
+    appearance.autoNext && mode === "play" && !isScanning && !!selectedId && !!nextQuiz && !isDirty;
+  const autoNextDelayMs = appearance.autoNextDelayMs;
+  const loadQuizRef = useRef(loadQuiz);
+  loadQuizRef.current = loadQuiz;
+
+  useEffect(() => {
+    if (!autoNextPending || !nextQuiz) return;
+    const timer = window.setTimeout(() => loadQuizRef.current(nextQuiz.id), autoNextDelayMs);
+    return () => window.clearTimeout(timer);
+  }, [autoNextPending, nextQuiz, autoNextDelayMs, selectedId]);
+
+  const autoNextBar = autoNextPending ? (
+    <div
+      key={`${activeQuizId}-${selectedId}`}
+      className="auto-next-bar"
+      style={{ animationDuration: `${autoNextDelayMs}ms` }}
+      aria-hidden="true"
+    />
+  ) : null;
+
   function goToQuiz(event: MouseEvent<HTMLButtonElement>, index: number) {
     // Évite qu'un appui sur Espace / Entrée (contacteur) ne re-clique ce bouton
     event.currentTarget.blur();
@@ -333,6 +359,7 @@ export default function App() {
             )}
           </>
         )}
+        {autoNextBar}
         <p className="visually-hidden" role="status">
           {selectedOption ? `Réponse sélectionnée : ${selectedOption.text}` : ""}
         </p>
@@ -422,13 +449,17 @@ export default function App() {
           <p className="status" role="status">
             {isScanning && "Défilement en cours — appuyez sur le contacteur pour valider."}
             {!isScanning && selectedOption && `Réponse sélectionnée : ${selectedOption.text}`}
-            {!isScanning && selectedOption && contactorStarts && " — Contacteur : recommencer."}
+            {!isScanning && selectedOption && autoNextPending &&
+              ` — QCM suivant dans ${(autoNextDelayMs / 1000).toLocaleString("fr-FR")} s.`}
+            {!isScanning && selectedOption && !autoNextPending && contactorStarts &&
+              " — Contacteur : recommencer."}
             {!isScanning &&
               !selectedOption &&
               (contactorStarts
                 ? "Prêt. Appuyez sur le contacteur pour lancer le défilement."
                 : "Prêt. Cliquez sur une case ou démarrez le défilement.")}
           </p>
+          {autoNextBar}
         </main>
       ) : (
         <SettingsPanel
@@ -438,7 +469,10 @@ export default function App() {
           onImport={(file) => handleImport(file, "single")}
           onReset={handleReset}
           appearanceSection={
-            <AppearancePanel appearance={appearance} onChange={setAppearance} />
+            <>
+              <AppearancePanel appearance={appearance} onChange={setAppearance} />
+              <FlowPanel appearance={appearance} onChange={setAppearance} />
+            </>
           }
           librarySection={
             <QuizLibrary

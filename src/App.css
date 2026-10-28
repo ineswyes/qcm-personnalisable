@@ -730,3 +730,26 @@ button:disabled {
   align-items: center;
   justify-content: center;
 }
+
+/* ----- Barre de temps avant le QCM suivant ----- */
+
+.auto-next-bar {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  z-index: 9;
+  height: 6px;
+  width: 100%;
+  background: var(--selected-color, #22c55e);
+  transform-origin: left center;
+  animation: auto-next-progress linear forwards;
+}
+
+@keyframes auto-next-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
