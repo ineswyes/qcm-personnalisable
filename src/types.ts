@@ -52,6 +52,17 @@ export interface QuizConfig {
   speechEnabled: boolean;
 }
 
+/** Apparence commune à tous les QCM */
+export interface Appearance {
+  scanColor: string;
+  selectedColor: string;
+  ringWidth: number;
+}
+
+export function defaultAppearance(): Appearance {
+  return { scanColor: "#facc15", selectedColor: "#22c55e", ringWidth: 10 };
+}
+
 /** Un QCM enregistré dans la liste « Mes QCM » */
 export interface SavedQuiz {
   id: string;

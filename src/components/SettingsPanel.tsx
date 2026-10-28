@@ -12,6 +12,8 @@ interface SettingsPanelProps {
   onReset: () => void;
   /** Section « Mes QCM », affichée en haut des réglages */
   librarySection?: ReactNode;
+  /** Section « Contour des cases », affichée après le défilement */
+  appearanceSection?: ReactNode;
 }
 
 export function SettingsPanel({
@@ -21,6 +23,7 @@ export function SettingsPanel({
   onImport,
   onReset,
   librarySection,
+  appearanceSection,
 }: SettingsPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -137,6 +140,8 @@ export function SettingsPanel({
           </label>
         )}
       </section>
+
+      {appearanceSection}
 
       <section className="settings-section">
         <h2>Cases ({config.options.length})</h2>

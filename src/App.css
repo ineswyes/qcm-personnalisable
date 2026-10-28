@@ -127,7 +127,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  box-shadow: inset 0 0 0 8px var(--ring);
+  box-shadow: inset 0 0 0 var(--ring-width, 10px) var(--ring);
   pointer-events: none;
   z-index: 2;
   transition: box-shadow 0.2s ease;
@@ -144,9 +144,13 @@
 }
 
 .option-card--highlighted {
-  --ring: #ffffff;
+  --ring: var(--scan-color, #facc15);
   transform: scale(1.03);
-  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.35);
+  /* Halo extérieur de la même couleur : visible aussi sur le fond de la page */
+  box-shadow:
+    0 0 0 4px var(--ring),
+    0 0 28px 6px var(--ring),
+    0 16px 36px rgba(15, 23, 42, 0.35);
   z-index: 1;
 }
 
@@ -158,9 +162,12 @@
 }
 
 .option-card--selected {
-  --ring: #22c55e;
+  --ring: var(--selected-color, #22c55e);
   transform: scale(1.04);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+  box-shadow:
+    0 0 0 4px var(--ring),
+    0 0 28px 6px var(--ring),
+    0 18px 40px rgba(15, 23, 42, 0.35);
   z-index: 1;
 }
 
@@ -174,8 +181,11 @@
   min-width: 44px;
   min-height: 44px;
   border-radius: 50%;
-  background: #22c55e;
+  background: var(--selected-color, #22c55e);
   color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  border: 3px solid #ffffff;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -670,4 +680,53 @@ button:disabled {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* ----- Choix des couleurs de contour ----- */
+
+.color-choice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-choice__swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid rgba(127, 127, 127, 0.5);
+  cursor: pointer;
+  padding: 0;
+}
+
+.color-choice__swatch--active {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.color-choice__custom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.ring-preview {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ring-preview__card {
+  width: 140px;
+  height: 80px;
+  border-radius: 16px;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

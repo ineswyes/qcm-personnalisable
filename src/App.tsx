@@ -1,6 +1,7 @@
-import type { MouseEvent } from "react";
+import type { CSSProperties, MouseEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
+import { AppearancePanel } from "./components/AppearancePanel";
 import { QuizGrid } from "./components/QuizGrid";
 import { QuizLibrary } from "./components/QuizLibrary";
 import { SettingsPanel } from "./components/SettingsPanel";
@@ -9,14 +10,15 @@ import { useScanning } from "./hooks/useScanning";
 import { useSpeech } from "./hooks/useSpeech";
 import { deleteUnusedImages } from "./lib/imageStore";
 import { exportList, exportSingle, readImportFile } from "./lib/transfer";
-import { DEFAULT_PAUSE_MS, defaultConfig, imageIdsOf, newQuizId } from "./types";
-import type { QuizConfig, SavedQuiz } from "./types";
+import { DEFAULT_PAUSE_MS, defaultAppearance, defaultConfig, imageIdsOf, newQuizId } from "./types";
+import type { Appearance, QuizConfig, SavedQuiz } from "./types";
 
 type Mode = "play" | "settings";
 
 const STORAGE_KEY = "qcm-personnalisable-config";
 const LIBRARY_KEY = "qcm-personnalisable-mes-qcm";
 const ACTIVE_KEY = "qcm-personnalisable-qcm-affiche";
+const APPEARANCE_KEY = "qcm-personnalisable-apparence";
 /** Anti-rebond : un 2e signal du contacteur juste après le lancement est ignoré */
 const START_DEBOUNCE_MS = 400;
 const NAV_KEYS = ["Escape", "ArrowLeft", "ArrowRight"];
@@ -29,6 +31,16 @@ export default function App() {
   const [config, setConfig] = useLocalStorage<QuizConfig>(STORAGE_KEY, defaultConfig);
   const [quizzes, setQuizzes] = useLocalStorage<SavedQuiz[]>(LIBRARY_KEY, () => []);
   const [activeQuizId, setActiveQuizId] = useLocalStorage<string | null>(ACTIVE_KEY, () => null);
+  const [storedAppearance, setAppearance] = useLocalStorage<Appearance>(
+    APPEARANCE_KEY,
+    defaultAppearance,
+  );
+  const appearance = { ...defaultAppearance(), ...storedAppearance };
+  const appearanceStyle = {
+    "--scan-color": appearance.scanColor,
+    "--selected-color": appearance.selectedColor,
+    "--ring-width": `${appearance.ringWidth}px`,
+  } as CSSProperties;
   const [mode, setMode] = useState<Mode>("play");
   const [isScanning, setIsScanning] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -285,6 +297,7 @@ export default function App() {
         className={
           mouseActive ? "app app--play app--presenting" : "app app--play app--presenting app--idle"
         }
+        style={appearanceStyle}
       >
         {config.question.trim() && <h2 className="question">{config.question}</h2>}
         {grid}
@@ -328,7 +341,7 @@ export default function App() {
   }
 
   return (
-    <div className={mode === "play" ? "app app--play" : "app"}>
+    <div className={mode === "play" ? "app app--play" : "app"} style={appearanceStyle}>
       <header className="app-header">
         <h1>QCM Personnalisable</h1>
         <nav className="mode-switch">
@@ -424,6 +437,9 @@ export default function App() {
           onExport={handleExport}
           onImport={(file) => handleImport(file, "single")}
           onReset={handleReset}
+          appearanceSection={
+            <AppearancePanel appearance={appearance} onChange={setAppearance} />
+          }
           librarySection={
             <QuizLibrary
               quizzes={quizzes}
