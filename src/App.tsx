@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import { QuizGrid } from "./components/QuizGrid";
 import { QuizLibrary } from "./components/QuizLibrary";
@@ -9,7 +9,7 @@ import { useScanning } from "./hooks/useScanning";
 import { useSpeech } from "./hooks/useSpeech";
 import { deleteUnusedImages } from "./lib/imageStore";
 import { exportList, exportSingle, readImportFile } from "./lib/transfer";
-import { defaultConfig, imageIdsOf, newQuizId } from "./types";
+import { DEFAULT_PAUSE_MS, defaultConfig, imageIdsOf, newQuizId } from "./types";
 import type { QuizConfig, SavedQuiz } from "./types";
 
 type Mode = "play" | "settings";
@@ -17,6 +17,8 @@ type Mode = "play" | "settings";
 const STORAGE_KEY = "qcm-personnalisable-config";
 const LIBRARY_KEY = "qcm-personnalisable-mes-qcm";
 const ACTIVE_KEY = "qcm-personnalisable-qcm-affiche";
+/** Anti-rebond : un 2e signal du contacteur juste après le lancement est ignoré */
+const START_DEBOUNCE_MS = 400;
 
 function cloneConfig(config: QuizConfig): QuizConfig {
   return JSON.parse(JSON.stringify(config)) as QuizConfig;
@@ -29,6 +31,11 @@ export default function App() {
   const [mode, setMode] = useState<Mode>("play");
   const [isScanning, setIsScanning] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const contactorStarts = config.scan.contactorStarts ?? true;
+  const pauseMs = config.scan.pauseMs ?? DEFAULT_PAUSE_MS;
+  // Moment jusqu'auquel le contacteur est ignoré (pause après une réponse)
+  const lockedUntil = useRef(0);
 
   const scanIndex = useScanning(config.options.length, config.scan.speedMs, isScanning);
   const speak = useSpeech();
@@ -55,15 +62,17 @@ export default function App() {
   const startScan = useCallback(() => {
     setSelectedId(null);
     setIsScanning(true);
+    lockedUntil.current = Date.now() + START_DEBOUNCE_MS;
   }, []);
 
   const stopScanAndSelect = useCallback(() => {
     setIsScanning(false);
+    lockedUntil.current = Date.now() + pauseMs;
     const option = config.options[scanIndex];
     if (!option) return;
     setSelectedId(option.id);
     if (config.speechEnabled) speak(option.text);
-  }, [config.options, config.speechEnabled, scanIndex, speak]);
+  }, [config.options, config.speechEnabled, scanIndex, speak, pauseMs]);
 
   const selectDirectly = useCallback(
     (id: string) => {
@@ -76,19 +85,24 @@ export default function App() {
   );
 
   useEffect(() => {
-    if (mode !== "play" || !isScanning) return;
+    if (mode !== "play") return;
+    if (!isScanning && !contactorStarts) return;
 
     function handleKeyDown(event: KeyboardEvent) {
       const isTrigger =
         config.scan.triggerMode === "anyKey" || event.code === "Space" || event.code === "Enter";
       if (!isTrigger) return;
+      // Le contacteur ne doit pas « cliquer » le bouton qui a le focus
       event.preventDefault();
-      stopScanAndSelect();
+      // Touche maintenue enfoncée ou pause en cours : on ignore
+      if (event.repeat || Date.now() < lockedUntil.current) return;
+      if (isScanning) stopScanAndSelect();
+      else startScan();
     }
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [mode, isScanning, config.scan.triggerMode, stopScanAndSelect]);
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [mode, isScanning, contactorStarts, config.scan.triggerMode, stopScanAndSelect, startScan]);
 
   // ----- Mes QCM -----
 
@@ -266,7 +280,12 @@ export default function App() {
           <p className="status" role="status">
             {isScanning && "Défilement en cours — appuyez sur le contacteur pour valider."}
             {!isScanning && selectedOption && `Réponse sélectionnée : ${selectedOption.text}`}
-            {!isScanning && !selectedOption && "Prêt. Cliquez sur une case ou démarrez le défilement."}
+            {!isScanning && selectedOption && contactorStarts && " — Contacteur : recommencer."}
+            {!isScanning &&
+              !selectedOption &&
+              (contactorStarts
+                ? "Prêt. Appuyez sur le contacteur pour lancer le défilement."
+                : "Prêt. Cliquez sur une case ou démarrez le défilement.")}
           </p>
         </main>
       ) : (

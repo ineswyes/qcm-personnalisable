@@ -28,7 +28,13 @@ export type TriggerMode = "spaceEnter" | "anyKey";
 export interface ScanSettings {
   speedMs: number;
   triggerMode: TriggerMode;
+  /** Le contacteur lance aussi le défilement (vrai par défaut) */
+  contactorStarts?: boolean;
+  /** Pause après une réponse pendant laquelle le contacteur est ignoré (ms) */
+  pauseMs?: number;
 }
+
+export const DEFAULT_PAUSE_MS = 1500;
 
 export interface QuizConfig {
   question: string;
@@ -81,6 +87,8 @@ export function defaultConfig(): QuizConfig {
     scan: {
       speedMs: 1200,
       triggerMode: "spaceEnter",
+      contactorStarts: true,
+      pauseMs: DEFAULT_PAUSE_MS,
     },
     speechEnabled: true,
   };

@@ -1,7 +1,7 @@
 import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from "react";
 import { useRef } from "react";
 import type { OptionConfig, QuizConfig, TriggerMode } from "../types";
-import { FONT_OPTIONS, makeOption } from "../types";
+import { DEFAULT_PAUSE_MS, FONT_OPTIONS, makeOption } from "../types";
 import { PhotoPicker } from "./PhotoPicker";
 
 interface SettingsPanelProps {
@@ -107,6 +107,35 @@ export function SettingsPanel({
             <option value="anyKey">N'importe quelle touche (compatibilité max)</option>
           </select>
         </label>
+        <label className="settings-checkbox">
+          <input
+            type="checkbox"
+            checked={config.scan.contactorStarts ?? true}
+            onChange={(e) =>
+              onChange({ ...config, scan: { ...config.scan, contactorStarts: e.target.checked } })
+            }
+          />
+          Le contacteur lance aussi le défilement (en Mode Jeu)
+        </label>
+        {(config.scan.contactorStarts ?? true) && (
+          <label className="settings-row">
+            Pause après une réponse : {((config.scan.pauseMs ?? DEFAULT_PAUSE_MS) / 1000).toLocaleString("fr-FR")} s
+            <input
+              type="range"
+              min={0}
+              max={10000}
+              step={500}
+              value={config.scan.pauseMs ?? DEFAULT_PAUSE_MS}
+              onChange={(e) =>
+                onChange({ ...config, scan: { ...config.scan, pauseMs: Number(e.target.value) } })
+              }
+            />
+            <span className="settings-hint">
+              Pendant ce temps, la réponse choisie reste affichée et le contacteur est ignoré, pour
+              éviter de relancer le défilement par erreur.
+            </span>
+          </label>
+        )}
       </section>
 
       <section className="settings-section">
