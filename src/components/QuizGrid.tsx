@@ -18,7 +18,11 @@ export function QuizGrid({ options, isScanning, scanIndex, selectedId, onSelect 
 
   return (
     <div
-      className="quiz-grid"
+      className={[
+        "quiz-grid",
+        isScanning ? "quiz-grid--scanning" : "",
+        !isScanning && selectedId ? "quiz-grid--answered" : "",
+      ].join(" ")}
       style={{
         gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
         gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,

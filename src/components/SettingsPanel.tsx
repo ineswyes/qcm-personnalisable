@@ -1,7 +1,7 @@
 import type { ChangeEvent, Dispatch, ReactNode, SetStateAction } from "react";
 import { useRef } from "react";
 import type { OptionConfig, QuizConfig, TriggerMode } from "../types";
-import { DEFAULT_PAUSE_MS, FONT_OPTIONS, makeOption } from "../types";
+import { DEFAULT_PAUSE_MS, FONT_OPTIONS, makeOption, normalizeFont } from "../types";
 import { PhotoPicker } from "./PhotoPicker";
 
 interface SettingsPanelProps {
@@ -179,8 +179,8 @@ export function SettingsPanel({
               <label>
                 Police
                 <select
-                  value={option.fontFamily}
-                  style={{ fontFamily: option.fontFamily }}
+                  value={normalizeFont(option.fontFamily)}
+                  style={{ fontFamily: normalizeFont(option.fontFamily) }}
                   onChange={(e) => updateOption(option.id, { fontFamily: e.target.value })}
                 >
                   {FONT_OPTIONS.map((font) => (

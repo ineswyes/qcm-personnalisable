@@ -1,5 +1,6 @@
 import { useImageUrl } from "../hooks/useImageUrl";
 import type { OptionConfig } from "../types";
+import { normalizeFont } from "../types";
 
 interface OptionCardProps {
   option: OptionConfig;
@@ -24,19 +25,34 @@ export function OptionCard({ option, highlighted, selected, onClick }: OptionCar
         backgroundColor: option.bgColor,
         color: option.textColor,
         fontSize: `${option.fontSize}px`,
-        fontFamily: option.fontFamily,
+        fontFamily: normalizeFont(option.fontFamily),
       }}
       onClick={onClick}
     >
       {option.imageId ? (
         <>
           <span className="option-card__photo">
-            {imageUrl && <img src={imageUrl} alt="" draggable={false} />}
+            {imageUrl && (
+              <>
+                {/* Fond flouté pour remplir la case sans couper la photo */}
+                <img className="option-card__photo-bg" src={imageUrl} alt="" draggable={false} />
+                <img className="option-card__photo-main" src={imageUrl} alt="" draggable={false} />
+              </>
+            )}
           </span>
-          {option.text && <span className="option-card__text">{option.text}</span>}
+          {option.text && (
+            <span className="option-card__band" style={{ backgroundColor: option.bgColor }}>
+              {option.text}
+            </span>
+          )}
         </>
       ) : (
-        option.text
+        <span className="option-card__label">{option.text}</span>
+      )}
+      {selected && (
+        <span className="option-card__check" aria-hidden="true">
+          ✓
+        </span>
       )}
     </button>
   );

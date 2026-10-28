@@ -9,8 +9,17 @@ export interface OptionConfig {
   imageId?: string;
 }
 
+/** Ancienne police par défaut : les cases qui l'utilisent passent à Nunito */
+const LEGACY_DEFAULT_FONT = 'system-ui, "Segoe UI", Roboto, sans-serif';
+export const DEFAULT_FONT = 'Nunito, system-ui, "Segoe UI", Roboto, sans-serif';
+
+export function normalizeFont(fontFamily: string | undefined): string {
+  return !fontFamily || fontFamily === LEGACY_DEFAULT_FONT ? DEFAULT_FONT : fontFamily;
+}
+
 export const FONT_OPTIONS = [
-  { label: "Système (par défaut)", value: 'system-ui, "Segoe UI", Roboto, sans-serif' },
+  { label: "Nunito, arrondie (par défaut)", value: DEFAULT_FONT },
+  { label: "Système", value: "system-ui, sans-serif" },
   { label: "Arial", value: "Arial, sans-serif" },
   { label: "Verdana", value: "Verdana, sans-serif" },
   { label: "Tahoma", value: "Tahoma, sans-serif" },

@@ -19,6 +19,7 @@ const LIBRARY_KEY = "qcm-personnalisable-mes-qcm";
 const ACTIVE_KEY = "qcm-personnalisable-qcm-affiche";
 /** Anti-rebond : un 2e signal du contacteur juste après le lancement est ignoré */
 const START_DEBOUNCE_MS = 400;
+const NAV_KEYS = ["Escape", "ArrowLeft", "ArrowRight"];
 
 function cloneConfig(config: QuizConfig): QuizConfig {
   return JSON.parse(JSON.stringify(config)) as QuizConfig;
@@ -31,8 +32,11 @@ export default function App() {
   const [mode, setMode] = useState<Mode>("play");
   const [isScanning, setIsScanning] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [presenting, setPresenting] = useState(false);
+  const [mouseActive, setMouseActive] = useState(false);
 
-  const contactorStarts = config.scan.contactorStarts ?? true;
+  // En mode Présentation il n'y a plus de bouton : le contacteur lance toujours le défilement
+  const contactorStarts = (config.scan.contactorStarts ?? true) || presenting;
   const pauseMs = config.scan.pauseMs ?? DEFAULT_PAUSE_MS;
   // Moment jusqu'auquel le contacteur est ignoré (pause après une réponse)
   const lockedUntil = useRef(0);
@@ -89,6 +93,8 @@ export default function App() {
     if (!isScanning && !contactorStarts) return;
 
     function handleKeyDown(event: KeyboardEvent) {
+      // Touches réservées à la navigation (Échap, flèches)
+      if (NAV_KEYS.includes(event.key)) return;
       const isTrigger =
         config.scan.triggerMode === "anyKey" || event.code === "Space" || event.code === "Enter";
       if (!isTrigger) return;
@@ -163,6 +169,67 @@ export default function App() {
     if (quiz) loadQuiz(quiz.id);
   }
 
+  // ----- Mode Présentation -----
+
+  function enterPresentation(event: MouseEvent<HTMLButtonElement>) {
+    event.currentTarget.blur();
+    setIsScanning(false);
+    setSelectedId(null);
+    setPresenting(true);
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  }
+
+  function exitPresentation() {
+    setPresenting(false);
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  }
+
+  // Sortie du plein écran (Échap géré par le navigateur) = sortie du mode Présentation
+  useEffect(() => {
+    function handleFullscreenChange() {
+      if (!document.fullscreenElement) setPresenting(false);
+    }
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  // Flèches ← → : QCM précédent / suivant ; Échap : quitter la présentation
+  const keyNavRef = useRef<(event: KeyboardEvent) => void>(() => {});
+  keyNavRef.current = (event: KeyboardEvent) => {
+    if (mode !== "play") return;
+    if (event.key === "Escape" && presenting) {
+      exitPresentation();
+    } else if (event.key === "ArrowLeft" && activeIndex > 0) {
+      event.preventDefault();
+      loadQuiz(quizzes[activeIndex - 1].id);
+    } else if (event.key === "ArrowRight" && activeIndex < quizzes.length - 1) {
+      event.preventDefault();
+      loadQuiz(quizzes[activeIndex + 1].id);
+    }
+  };
+  useEffect(() => {
+    const handler = (event: KeyboardEvent) => keyNavRef.current(event);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // En présentation, le bouton « Quitter » et la souris n'apparaissent que si on bouge la souris
+  useEffect(() => {
+    if (!presenting) return;
+    let timer = 0;
+    function handleMove() {
+      setMouseActive(true);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setMouseActive(false), 2500);
+    }
+    window.addEventListener("mousemove", handleMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMove);
+      window.clearTimeout(timer);
+      setMouseActive(false);
+    };
+  }, [presenting]);
+
   // ----- Export / import -----
 
   function handleExport() {
@@ -202,11 +269,50 @@ export default function App() {
 
   const selectedOption = config.options.find((opt) => opt.id === selectedId) ?? null;
 
+  const grid = (
+    <QuizGrid
+      options={config.options}
+      isScanning={isScanning}
+      scanIndex={scanIndex}
+      selectedId={selectedId}
+      onSelect={selectDirectly}
+    />
+  );
+
+  if (presenting) {
+    return (
+      <div
+        className={
+          mouseActive ? "app app--play app--presenting" : "app app--play app--presenting app--idle"
+        }
+      >
+        {config.question.trim() && <h2 className="question">{config.question}</h2>}
+        {grid}
+        <button type="button" className="presentation-exit" onClick={exitPresentation}>
+          ✕ Quitter la présentation (Échap)
+        </button>
+        <p className="visually-hidden" role="status">
+          {selectedOption ? `Réponse sélectionnée : ${selectedOption.text}` : ""}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className={mode === "play" ? "app app--play" : "app"}>
       <header className="app-header">
         <h1>QCM Personnalisable</h1>
         <nav className="mode-switch">
+          {mode === "play" && (
+            <button
+              type="button"
+              className="mode-switch__button mode-switch__button--present"
+              onClick={enterPresentation}
+              title="Plein écran, uniquement la question et les cases"
+            >
+              ⛶ Présentation
+            </button>
+          )}
           <button
             type="button"
             className={mode === "play" ? "mode-switch__button mode-switch__button--active" : "mode-switch__button"}
@@ -257,13 +363,7 @@ export default function App() {
 
           <h2 className="question">{config.question}</h2>
 
-          <QuizGrid
-            options={config.options}
-            isScanning={isScanning}
-            scanIndex={scanIndex}
-            selectedId={selectedId}
-            onSelect={selectDirectly}
-          />
+          {grid}
 
           <div className="play-controls">
             {!isScanning ? (

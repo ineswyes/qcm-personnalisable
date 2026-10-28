@@ -29,6 +29,7 @@
 .app--play .quiz-grid {
   flex: 1;
   min-height: 0;
+  gap: 14px;
 }
 
 .app--play .play-controls {
@@ -96,34 +97,103 @@
 }
 
 .option-card {
-  border: 4px solid transparent;
-  border-radius: 16px;
-  padding: 28px 16px;
+  --ring: transparent;
+  position: relative;
+  border: none;
+  border-radius: 22px;
+  padding: 24px 16px;
   min-height: 140px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-weight: 700;
+  font-weight: 800;
+  line-height: 1.1;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.1s ease;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+  transition:
+    transform 0.25s ease,
+    opacity 0.3s ease,
+    filter 0.3s ease,
+    box-shadow 0.25s ease;
   word-break: break-word;
   box-sizing: border-box;
 }
 
-.option-card:hover {
-  transform: translateY(-2px);
+/* Contour (au-dessus de la photo) */
+.option-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 8px var(--ring);
+  pointer-events: none;
+  z-index: 2;
+  transition: box-shadow 0.2s ease;
+}
+
+.option-card__label {
+  position: relative;
+  z-index: 1;
+}
+
+/* Pendant le défilement : la case en cours ressort, les autres s'assombrissent */
+.quiz-grid--scanning .option-card:not(.option-card--highlighted) {
+  filter: brightness(0.55) saturate(0.8);
 }
 
 .option-card--highlighted {
-  border-color: #facc15;
-  box-shadow: 0 0 0 6px rgba(250, 204, 21, 0.35);
-  transform: scale(1.02);
+  --ring: #ffffff;
+  transform: scale(1.03);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.35);
+  z-index: 1;
+}
+
+/* Après la réponse : la case choisie s'agrandit, les autres s'estompent */
+.quiz-grid--answered .option-card:not(.option-card--selected) {
+  opacity: 0.3;
+  filter: grayscale(0.7);
+  transform: scale(0.96);
 }
 
 .option-card--selected {
-  border-color: #22c55e;
-  box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.4);
+  --ring: #22c55e;
+  transform: scale(1.04);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+  z-index: 1;
+}
+
+.option-card__check {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  width: 1.6em;
+  height: 1.6em;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(22px, 4vh, 40px);
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: check-pop 0.3s ease;
+}
+
+@keyframes check-pop {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .play-controls {
@@ -297,41 +367,51 @@
   }
 }
 
-/* ----- Photo dans une case ----- */
+/* ----- Photo dans une case : la photo remplit la case, texte sur un bandeau ----- */
 
 .option-card--with-photo {
+  padding: 0;
+  align-items: stretch;
+  justify-content: flex-end;
   flex-direction: column;
-  justify-content: stretch;
-  gap: 10px;
-  padding: 14px;
-  overflow: hidden;
 }
 
 .option-card__photo {
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .option-card__photo img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: 10px;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   display: block;
 }
 
-/* Hors mode Jeu plein écran, on garde une hauteur raisonnable */
-.app:not(.app--play) .option-card__photo {
-  height: 160px;
+.option-card__photo-bg {
+  object-fit: cover;
+  filter: blur(24px) brightness(0.85);
+  transform: scale(1.2);
 }
 
-.option-card__text {
-  flex: 0 0 auto;
-  line-height: 1.15;
+.option-card__photo-main {
+  object-fit: contain;
+}
+
+/* Hors mode Jeu plein écran, on garde une hauteur raisonnable */
+.app:not(.app--play) .option-card--with-photo {
+  min-height: 220px;
+}
+
+.option-card__band {
+  position: relative;
+  z-index: 1;
+  padding: 0.35em 0.6em;
+  line-height: 1.1;
 }
 
 /* ----- Choix de la photo (Réglages) ----- */
@@ -483,4 +563,64 @@ button:disabled {
   .quiz-nav__label {
     font-size: 0.85rem;
   }
+}
+
+/* ----- Mode Présentation ----- */
+
+.mode-switch__button--present {
+  border-color: #0f172a;
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.app--presenting {
+  padding: 2.5vh 2.5vw;
+  gap: 2.5vh;
+  background: var(--bg);
+}
+
+.app--presenting .question {
+  font-size: clamp(1.6rem, 5vh, 3.4rem);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.app--presenting .quiz-grid {
+  gap: 2vh;
+}
+
+.app--idle,
+.app--idle * {
+  cursor: none !important;
+}
+
+.presentation-exit {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.8);
+  color: #ffffff;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.app--idle .presentation-exit {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
