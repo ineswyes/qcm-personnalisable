@@ -24,7 +24,7 @@ export function OptionCard({ option, highlighted, selected, onClick }: OptionCar
       style={{
         backgroundColor: option.bgColor,
         color: option.textColor,
-        fontSize: `${option.fontSize}px`,
+        fontSize: `calc(${option.fontSize}px * var(--fit-scale, 1))`,
         fontFamily: normalizeFont(option.fontFamily),
       }}
       onClick={onClick}

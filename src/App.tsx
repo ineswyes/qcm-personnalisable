@@ -3,6 +3,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import { AppearancePanel } from "./components/AppearancePanel";
 import { FlowPanel } from "./components/FlowPanel";
+import { ScreenPanel } from "./components/ScreenPanel";
+import { useViewportSize } from "./hooks/useViewportSize";
+import {
+  exitFullscreen,
+  fullscreenElement,
+  FULLSCREEN_EVENTS,
+  requestFullscreen,
+} from "./lib/fullscreen";
 import { QuizGrid } from "./components/QuizGrid";
 import { QuizLibrary } from "./components/QuizLibrary";
 import { SettingsPanel } from "./components/SettingsPanel";
@@ -37,7 +45,15 @@ export default function App() {
     defaultAppearance,
   );
   const appearance = { ...defaultAppearance(), ...storedAppearance };
+  // Taille de l'écran visible : la page en Mode Jeu y tient exactement, sans défiler
+  const viewport = useViewportSize();
+  // Écran de référence : un ordinateur portable (1280 × 760). Plus petit = textes réduits.
+  const fitScale = appearance.fitToScreen
+    ? Math.min(1, Math.max(0.5, Math.min(viewport.width / 1280, viewport.height / 760)))
+    : 1;
   const appearanceStyle = {
+    "--app-height": `${viewport.height}px`,
+    "--fit-scale": String(Math.round(fitScale * 100) / 100),
     "--scan-color": appearance.scanColor,
     "--selected-color": appearance.selectedColor,
     "--ring-width": `${appearance.ringWidth}px`,
@@ -178,6 +194,15 @@ export default function App() {
     setQuizzes(next);
   }
 
+  // Revenir en haut de la page en changeant d'écran (sinon, sur iPad, la page garde
+  // la position de défilement des Réglages et la question est cachée en haut)
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const root = document.documentElement;
+    root.classList.toggle("no-page-scroll", mode === "play");
+    return () => root.classList.remove("no-page-scroll");
+  }, [mode, presenting]);
+
   // Lancement automatique : on repart de la première case du QCM affiché
   useEffect(() => {
     if (!autoStartRequested) return;
@@ -225,21 +250,24 @@ export default function App() {
     setSelectedId(null);
     setPresenting(true);
     if (appearance.autoStart) setAutoStartRequested(true);
-    document.documentElement.requestFullscreen?.().catch(() => {});
+    requestFullscreen();
   }
 
   function exitPresentation() {
     setPresenting(false);
-    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    exitFullscreen();
   }
 
   // Sortie du plein écran (Échap géré par le navigateur) = sortie du mode Présentation
   useEffect(() => {
     function handleFullscreenChange() {
-      if (!document.fullscreenElement) setPresenting(false);
+      if (!fullscreenElement()) setPresenting(false);
     }
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    FULLSCREEN_EVENTS.forEach((name) => document.addEventListener(name, handleFullscreenChange));
+    return () =>
+      FULLSCREEN_EVENTS.forEach((name) =>
+        document.removeEventListener(name, handleFullscreenChange),
+      );
   }, []);
 
   // Flèches ← → : QCM précédent / suivant ; Échap : quitter la présentation
@@ -483,6 +511,7 @@ export default function App() {
             <>
               <AppearancePanel appearance={appearance} onChange={setAppearance} />
               <FlowPanel appearance={appearance} onChange={setAppearance} />
+              <ScreenPanel appearance={appearance} onChange={setAppearance} />
             </>
           }
           librarySection={

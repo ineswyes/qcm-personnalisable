@@ -112,3 +112,10 @@ select,
 textarea {
   font-family: inherit;
 }
+
+/* Mode Jeu : la page tient dans l'écran, pas de défilement ni d'effet élastique (iPad) */
+html.no-page-scroll,
+html.no-page-scroll body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}

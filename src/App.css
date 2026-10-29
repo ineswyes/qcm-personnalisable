@@ -13,7 +13,10 @@
 .app--play {
   max-width: none;
   width: 100%;
+  height: 100vh;
   height: 100svh;
+  /* Hauteur mesurée de l'écran visible (fiable sur iPad / Safari) */
+  height: var(--app-height, 100svh);
   box-sizing: border-box;
   padding: 16px 20px;
   gap: 16px;
@@ -169,6 +172,10 @@
     0 0 28px 6px var(--ring),
     0 18px 40px rgba(15, 23, 42, 0.35);
   z-index: 1;
+}
+
+.app--play .question {
+  flex: 0 0 auto;
 }
 
 .option-card__check {
@@ -584,13 +591,21 @@ button:disabled {
 }
 
 .app--presenting {
-  padding: 2.5vh 2.5vw;
+  /* Collée aux bords de l'écran visible : impossible de faire défiler */
+  position: fixed;
+  inset: 0;
+  height: auto;
+  z-index: 5;
+  padding: max(2.5vh, env(safe-area-inset-top)) max(2.5vw, env(safe-area-inset-right))
+    max(2.5vh, env(safe-area-inset-bottom)) max(2.5vw, env(safe-area-inset-left));
   gap: 2.5vh;
   background: var(--bg);
 }
 
 .app--presenting .question {
-  font-size: clamp(1.6rem, 5vh, 3.4rem);
+  flex: 0 0 auto;
+  /* Suit la hauteur ET la largeur de l'écran : plus petite sur un iPad en portrait */
+  font-size: clamp(1.1rem, min(5vh, 3.6vw), 3.4rem);
   font-weight: 800;
   line-height: 1.1;
 }

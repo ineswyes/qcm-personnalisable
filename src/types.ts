@@ -62,6 +62,8 @@ export interface Appearance {
   autoNextDelayMs: number;
   /** Lancer le défilement tout seul (entrée en Présentation, nouveau QCM) */
   autoStart: boolean;
+  /** Réduire les textes sur les écrans plus petits qu'un ordinateur (iPad…) */
+  fitToScreen: boolean;
 }
 
 export function defaultAppearance(): Appearance {
@@ -72,6 +74,7 @@ export function defaultAppearance(): Appearance {
     autoNext: false,
     autoNextDelayMs: 3000,
     autoStart: false,
+    fitToScreen: true,
   };
 }
 
